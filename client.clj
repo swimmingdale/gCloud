@@ -1,6 +1,7 @@
 	(require '[clojure.java.io :refer [file output-stream input-stream]])
   (import '[java.io File])
 
+  (def dataBaseFile ".gCloud")
 
 (defn sameFileProperties?
 	[fileA fileB]
@@ -24,11 +25,6 @@
              :modified (modified fileName)
              }))
 
-(defn getFilesInFolder
-  [folderName]
-  "Returns a list of filenames in a folder given as a string"
-  )
-
 (defn printFilesInDirectory
   [dir]
   (let [d (File. dir)]
@@ -44,7 +40,11 @@
   "Returns a list of filenames in a directory given as a string."
   (let [d (File. dir)
         listFiles (.listFiles d)]
-    (map #(.getName %) listFiles)))
+    (map #(.getName %)
+         (filter #(if (not(= % dataBaseFile))
+                     true
+                     false)
+                 listFiles))))
 
 (defn getMapFileNameToFileProperties
   [folderName]
@@ -54,11 +54,17 @@
     {}
     (loop [map {}
            i 0]
-      (when (< i (- (count fileNames) 1))
+      (if (< i (- (count fileNames) 1))
         (recur (merge map {(nth fileNames i)
                            (getFileProperties (nth fileNames i))})
                (inc i))
         map)))))
+
+(defn writeCurrentFilesProperties
+  [string]
+  "Writes current files properties to fileName(should start with a . to be hidden in Unix-like OSs."
+  (spit dataBaseFile string)
+  )
    ;; (map #(merge {} {% (getFileProperties %)}) fileNames))))
 
 ;(def f1 (getFileProperties "EulerNew.jar"))
@@ -71,5 +77,5 @@
 
 ;(println (getListOfFilesInDirectory "../gCloud/gd"))
 
-(println (getMapFileNameToFileProperties "../gCloud"))
+(writeCurrentFilesProperties (getMapFileNameToFileProperties "../gCloud"))
 
